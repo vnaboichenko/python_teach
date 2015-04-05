@@ -8,7 +8,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument('instance_name', type=str, help='Name of the instance')
 parser.add_argument('action', type=str, help='create; start; stop; restart;')
 args = parser.parse_args()
-conn=libvirt.open("qemu:///system")
 vm_name = args.instance_name
 xml_file = 'xml/vm_template.xml'
 
@@ -28,19 +27,21 @@ def editXML(filename):
 def create():
     # edit new vm_name from template at start new domian
     editXML(xml_file)
-    reader = open(xml_file, 'r')
-    vm_xml = reader.read()
-    reader.close()
+    with open(xml_file, 'r') as f:
+        vm_xml = f.read()
+
 
     conn.createXML(vm_xml, 0)
 
-try:
-    vm = conn.lookupByName(vm_name)
-except libvirt.libvirtError:
-    if args.action == "create":
-        print 'Creating new Domian %s' % vm_name
-    else:
-        exit(1)
+def connect_to_libvirt():
+    try:
+        vm = conn.lookupByName(vm_name)
+        return vm
+    except libvirt.libvirtError:
+        if args.action == "create":
+            print 'Creating new Domian %s' % vm_name
+        else:
+            exit(1)
 
 
 
@@ -81,10 +82,18 @@ def status():
     print 'CPU Time (in ns) = %d' % infos[2]
     print ' '
 
-action_hash = {"create": create, "start": start, "stop": stop, "restart": restart, "delete": delete, "status": status}
+action_hash = {
+"create": create,
+"start": start,
+"stop": stop,
+"restart": restart,
+"delete": delete,
+"status": status}
+
 action = action_hash.get(args.action)
 
-action()
-
-
+if __name__ == "__main__":
+    conn=libvirt.open("qemu:///system")
+    vm = connect_to_libvirt()
+    action()
 

@@ -1,5 +1,5 @@
 <domain id="6" type="kvm">
-  <name>dsadad</name>
+  <name>test</name>
   <memory>2072576</memory>
   <currentMemory>2072576</currentMemory>
   <vcpu>2</vcpu>
